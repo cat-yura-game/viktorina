@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Quiz — Викторина про нейросети</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070b14;
+      --card: rgba(18, 24, 40, 0.82);
+      --card-2: rgba(25, 33, 52, 0.86);
+      --text: #f6f8ff;
+      --muted: #9ca9c5;
+      --blue: #668cff;
+      --purple: #9c6cff;
+      --green: #31d08b;
+      --red: #ff667a;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(88, 110, 255, 0.22), transparent 30%),
+        radial-gradient(circle at 85% 15%, rgba(163, 92, 255, 0.17), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(31, 192, 255, 0.12), transparent 35%),
+        var(--bg);
+      padding: 24px 16px 70px;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+
+    .container {
+      width: min(900px, 100%);
+      margin: auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 55px 10px 38px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 13px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(127, 155, 255, 0.25);
+      border-radius: 999px;
+      background: rgba(86, 108, 255, 0.09);
+      color: #b7c6ff;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .hero h1 {
+      font-size: clamp(37px, 8vw, 65px);
+      line-height: 1;
+      letter-spacing: -3px;
+      margin-bottom: 18px;
+      background: linear-gradient(
+        120deg,
+        #ffffff 10%,
+        #98adff 48%,
+        #c094ff 85%
+      );
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      max-width: 600px;
+      margin: auto;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      padding: 9px 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      font-size: 13px;
+      color: #c4cee3;
+    }
+
+    .progress-area {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      margin-bottom: 18px;
+      padding: 12px 16px;
+      background: rgba(8, 12, 22, 0.82);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+
+    .progress-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 9px;
+      color: #b4c0d8;
+      font-size: 13px;
+    }
+
+    .progress {
+      height: 7px;
+      background: rgba(255,255,255,.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      transition: width .3s ease;
+    }
+
+    .question {
+      position: relative;
+      overflow: hidden;
+      padding: 24px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: linear-gradient(
+        145deg,
+        rgba(24,31,49,.86),
+        rgba(13,18,31,.9)
+      );
+      box-shadow: 0 13px 40px rgba(0,0,0,.16);
+      transition: border-color .25s ease, transform .25s ease;
+    }
+
+    .question:hover {
+      border-color: rgba(130,151,255,.2);
+    }
+
+    .question.correct-card {
+      border-color: rgba(49, 208, 139, .45);
+    }
+
+    .question.wrong-card {
+      border-color: rgba(255, 102, 122, .47);
+    }
+
+    .question-number {
+      color: #8296d4;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .question h2 {
+      font-size: 19px;
+      line-height: 1.45;
+      margin-bottom: 18px;
+      font-weight: 650;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 15px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      cursor: pointer;
+      background: rgba(255,255,255,.025);
+      transition:
+        background .18s ease,
+        border-color .18s ease,
+        transform .18s ease;
+    }
+
+    .option:hover {
+      background: rgba(104, 130, 255, .08);
+      border-color: rgba(118, 143, 255, .3);
+      transform: translateY(-1px);
+    }
+
+    .option input {
+      display: none;
+    }
+
+    .circle {
+      min-width: 22px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid #66728e;
+      display: grid;
+      place-items: center;
+      margin-top: 1px;
+      transition: .18s ease;
+    }
+
+    .circle::after {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+      transform: scale(0);
+      transition: .18s ease;
+    }
+
+    .option:has(input:checked) {
+      border-color: rgba(105, 134, 255, .75);
+      background: rgba(92, 119, 255, .13);
+    }
+
+    .option:has(input:checked) .circle {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      border-color: transparent;
+    }
+
+    .option:has(input:checked) .circle::after {
+      transform: scale(1);
+    }
+
+    .option-text {
+      color: #dbe2f2;
+      line-height: 1.45;
+      font-size: 15px;
+    }
+
+    .option.correct-answer {
+      border-color: rgba(49,208,139,.6);
+      background: rgba(49,208,139,.1);
+    }
+
+    .option.wrong-answer {
+      border-color: rgba(255,102,122,.55);
+      background: rgba(255,102,122,.09);
+    }
+
+    .explanation {
+      display: none;
+      margin-top: 17px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .explanation.show {
+      display: block;
+    }
+
+    .explanation.ok {
+      color: #a9f0cf;
+      background: rgba(49,208,139,.08);
+      border: 1px solid rgba(49,208,139,.22);
+    }
+
+    .explanation.bad {
+      color: #ffb7c0;
+      background: rgba(255,102,122,.08);
+      border: 1px solid rgba(255,102,122,.2);
+    }
+
+    .actions {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .button {
+      border: 0;
+      outline: 0;
+      cursor: pointer;
+      padding: 15px 26px;
+      min-width: 200px;
+      border-radius: 15px;
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      background:
+        linear-gradient(135deg, #5e7dff, #9664ff);
+      box-shadow: 0 12px 34px rgba(100, 91, 255, .27);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 42px rgba(100, 91, 255, .38);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .result {
+      display: none;
+      margin-top: 32px;
+      padding: 32px 24px;
+      text-align: center;
+      border-radius: 25px;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(102,140,255,.18), transparent 45%),
+        rgba(18,24,40,.85);
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+
+    .result.show {
+      display: block;
+      animation: appear .45s ease;
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-icon {
+      font-size: 46px;
+      margin-bottom: 10px;
+    }
+
+    .score {
+      font-size: clamp(44px, 10vw, 72px);
+      font-weight: 800;
+      letter-spacing: -3px;
+      background: linear-gradient(135deg, #fff, #8fa6ff);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .result h3 {
+      margin-top: 6px;
+      font-size: 22px;
+    }
+
+    .result p {
+      color: var(--muted);
+      margin: 10px auto 22px;
+      line-height: 1.6;
+      max-width: 530px;
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 470px;
+      margin: 0 auto 22px;
+    }
+
+    .result-stat {
+      padding: 13px 8px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid var(--border);
+    }
+
+    .result-stat strong {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .result-stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .reset {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .warning {
+      display: none;
+      margin: 15px auto 0;
+      text-align: center;
+      color: #ffb3be;
+      font-size: 14px;
+    }
+
+    .warning.show {
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      padding-top: 38px;
+      color: #5f6c86;
+      font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px 11px 50px;
+      }
+
+      .hero {
+        padding-top: 42px;
+      }
+
+      .hero h1 {
+        letter-spacing: -2px;
+      }
+
+      .question {
+        padding: 19px 16px;
+        border-radius: 19px;
+      }
+
+      .question h2 {
+        font-size: 17px;
+      }
+
+      .option {
+        padding: 13px;
+      }
+
+      .option-text {
+        font-size: 14px;
+      }
+
+      .result-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+
+    <section class="hero">
+      <div class="badge">✦ AI Knowledge Test</div>
+
+      <h1>Насколько хорошо<br>ты знаешь ИИ?</h1>
+
+      <p>
+        15 вопросов о нейросетях, языковых моделях и современных
+        AI-технологиях. Ответь на все вопросы и сразу узнай результат.
+      </p>
+
+      <div class="stats">
+        <div class="stat">🧠 Средняя сложность</div>
+        <div class="stat">❓ 15 вопросов</div>
+        <div class="stat">⚡ Автопроверка</div>
+      </div>
+    </section>
+
+    <div class="progress-area">
+      <div class="progress-top">
+        <span>Прогресс</span>
+        <span id="progressText">0 / 15</span>
+      </div>
+
+      <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <form id="quiz"></form>
+
+    <div class="actions">
+      <button class="button" id="submitButton" type="button">
+        Проверить ответы
+      </button>
+    </div>
+
+    <div class="warning" id="warning">
+      Сначала ответь на все вопросы 👀
+    </div>
+
+    <section class="result" id="result">
+      <div class="result-icon" id="resultIcon">🧠</div>
+
+      <div class="score" id="score">0/15</div>
+
+      <h3 id="resultTitle">Результат</h3>
+
+      <p id="resultDescription"></p>
+
+      <div class="result-stats">
+        <div class="result-stat">
+          <strong id="correctCount">0</strong>
+          <span>правильных</span>
+        </div>
+
+        <div class="result-stat">
+          <strong id="wrongCount">0</strong>
+          <span>ошибок</span>
+        </div>
+
+        <div class="result-stat">
+          <strong id="percent">0%</strong>
+          <span>результат</span>
+        </div>
+      </div>
+
+      <button class="reset" onclick="resetQuiz()">
+        Пройти ещё раз
+      </button>
+    </section>
+
+    <footer>
+      AI Quiz • Викторина о нейросетях
+    </footer>
+
+  </main>
+
+
+  <script>
+
+    const questions = [
+      {
+        question: "Что такое токен в языковых моделях?",
+        options: [
+          "Отдельный сервер нейросети",
+          "Часть текста, которую модель обрабатывает как единицу",
+          "Пароль для доступа к API",
+          "Один параметр модели"
+        ],
+        answer: 1,
+        explanation:
+          "Токен — это единица текста, с которой работает модель. Это может быть целое слово, часть слова, символ или знак."
+      },
+
+      {
+        question: "Что обычно означает параметр temperature у языковой модели?",
+        options: [
+          "Скорость генерации ответа",
+          "Максимальную длину ответа",
+          "Степень случайности и разнообразия ответа",
+          "Количество параметров модели"
+        ],
+        answer: 2,
+        explanation:
+          "Temperature влияет на случайность выбора следующего токена. Более высокое значение обычно делает ответы разнообразнее и менее предсказуемыми."
+      },
+
+      {
+        question: "Что такое контекстное окно?",
+        options: [
+          "Интерфейс чата",
+          "Объём информации, который модель может учитывать за один запрос",
+          "Количество пользователей модели",
+          "Размер обучающей выборки"
+        ],
+        answer: 1,
+        explanation:
+          "Контекстное окно определяет объём токенов, которые модель может одновременно учитывать при генерации ответа."
+      },
+
+      {
+        question: "Что называют «галлюцинацией» нейросети?",
+        options: [
+          "Когда модель перестаёт отвечать",
+          "Когда модель уверенно генерирует неверную или выдуманную информацию",
+          "Когда модель создаёт изображение",
+          "Когда сервер модели перегружен"
+        ],
+        answer: 1,
+        explanation:
+          "Галлюцинацией называют ситуацию, когда модель создаёт правдоподобную, но фактически неверную информацию."
+      },
+
+      {
+        question: "Для чего нужен системный промпт?",
+        options: [
+          "Для установки нейросети на компьютер",
+          "Для задания основных инструкций и правил поведения модели",
+          "Для увеличения скорости интернета",
+          "Для обучения модели с нуля"
+        ],
+        answer: 1,
+        explanation:
+          "Системный промпт задаёт модели инструкции, роль, ограничения и основные правила поведения."
+      },
+
+      {
+        question: "Что означает, что модель является мультимодальной?",
+        options: [
+          "Она работает только с текстом",
+          "Она может работать с несколькими типами данных",
+          "Она запускается одновременно на нескольких серверах",
+          "Она состоит из нескольких аккаунтов"
+        ],
+        answer: 1,
+        explanation:
+          "Мультимодальная модель может обрабатывать разные типы информации: например текст, изображения, аудио или видео."
+      },
+
+      {
+        question: "Что такое fine-tuning?",
+        options: [
+          "Удаление части знаний модели",
+          "Дополнительное обучение уже готовой модели на специальных данных",
+          "Уменьшение размера промпта",
+          "Подключение модели к интернету"
+        ],
+        answer: 1,
+        explanation:
+          "Fine-tuning — это дополнительное обучение готовой модели для определённых задач, стиля или области знаний."
+      },
+
+      {
+        question: "Что лучше всего описывает RAG?",
+        options: [
+          "Метод генерации изображений",
+          "Подход, при котором модель получает дополнительную информацию из внешнего источника",
+          "Формат хранения нейросетей",
+          "Язык программирования для ИИ"
+        ],
+        answer: 1,
+        explanation:
+          "RAG позволяет сначала найти полезные данные во внешнем источнике, а затем передать их модели для формирования ответа."
+      },
+
+      {
+        question: "Что означает аббревиатура LLM?",
+        options: [
+          "Large Language Model",
+          "Logical Learning Machine",
+          "Long Layer Memory",
+          "Language Logic Module"
+        ],
+        answer: 0,
+        explanation:
+          "LLM расшифровывается как Large Language Model — большая языковая модель."
+      },
+
+      {
+        question: "Что происходит во время inference?",
+        options: [
+          "Модель обучается с нуля",
+          "Обученная модель используется для получения результата",
+          "Удаляются параметры модели",
+          "Создаётся новая архитектура нейросети"
+        ],
+        answer: 1,
+        explanation:
+          "Inference — это этап использования уже обученной модели, например когда она отвечает на твой запрос."
+      },
+
+      {
+        question: "Какую роль играют веса (weights) нейросети?",
+        options: [
+          "В них закодированы закономерности, которые модель получила во время обучения",
+          "Они определяют цену подписки",
+          "Они хранят историю всех пользователей",
+          "Они отвечают только за скорость сервера"
+        ],
+        answer: 0,
+        explanation:
+          "Веса — это числовые параметры модели. Во время обучения они изменяются так, чтобы модель лучше выполняла свою задачу."
+      },
+
+      {
+        question: "Что такое embedding?",
+        options: [
+          "Числовое представление объекта, например текста, в виде вектора",
+          "Архив с файлами модели",
+          "Способ ускорения видеокарты",
+          "Тип операционной системы"
+        ],
+        answer: 0,
+        explanation:
+          "Embedding преобразует объект в набор чисел — вектор. Похожие по смыслу объекты часто имеют похожие векторы."
+      },
+
+      {
+        question: "Что позволяет AI-модели использовать калькулятор, поиск или другие внешние функции?",
+        options: [
+          "Tool calling",
+          "Token splitting",
+          "Model freezing",
+          "Image scaling"
+        ],
+        answer: 0,
+        explanation:
+          "Tool calling позволяет модели вызывать внешние инструменты или функции для выполнения конкретных действий."
+      },
+
+      {
+        question: "Почему большее количество параметров не всегда означает лучшую модель?",
+        options: [
+          "Потому что качество также зависит от данных, архитектуры и процесса обучения",
+          "Потому что параметры вообще не влияют на модель",
+          "Потому что модели больше 1 млрд параметров не работают",
+          "Потому что большие модели не умеют генерировать текст"
+        ],
+        answer: 0,
+        explanation:
+          "Количество параметров важно, но итоговое качество также сильно зависит от данных, архитектуры, обучения и оптимизации модели."
+      },
+
+      {
+        question: "Что наиболее точно описывает AI-агента?",
+        options: [
+          "Любой чат с нейросетью",
+          "Систему, которая может планировать действия, использовать инструменты и выполнять несколько шагов для достижения цели",
+          "Обычную базу данных",
+          "Поисковую систему без языковой модели"
+        ],
+        answer: 1,
+        explanation:
+          "AI-агент способен не только отвечать текстом, но и самостоятельно выполнять последовательность действий и использовать инструменты."
+      }
+    ];
+
+
+    const quiz = document.getElementById("quiz");
+    const submitButton = document.getElementById("submitButton");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+    const result = document.getElementById("result");
+    const warning = document.getElementById("warning");
+
+
+    function renderQuiz() {
+
+      quiz.innerHTML = "";
+
+      questions.forEach((item, questionIndex) => {
+
+        const questionElement = document.createElement("section");
+        questionElement.className = "question";
+        questionElement.dataset.question = questionIndex;
+
+        let optionsHTML = "";
+
+        item.options.forEach((option, optionIndex) => {
+
+          const letter = String.fromCharCode(65 + optionIndex);
+
+          optionsHTML += `
+            <label class="option">
+              <input
+                type="radio"
+                name="question-${questionIndex}"
+                value="${optionIndex}"
+              >
+
+              <span class="circle"></span>
+
+              <span class="option-text">
+                <strong>${letter}.</strong> ${option}
+              </span>
+            </label>
+          `;
+        });
+
+        questionElement.innerHTML = `
+          <div class="question-number">
+            Вопрос ${questionIndex + 1} из ${questions.length}
+          </div>
+
+          <h2>${item.question}</h2>
+
+          <div class="options">
+            ${optionsHTML}
+          </div>
+
+          <div class="explanation"></div>
+        `;
+
+        quiz.appendChild(questionElement);
+      });
+
+
+      document
+        .querySelectorAll('input[type="radio"]')
+        .forEach(input => {
+
+          input.addEventListener("change", updateProgress);
+
+        });
+
+    }
+
+
+    function updateProgress() {
+
+      let answered = 0;
+
+      questions.forEach((_, index) => {
+
+        if (
+          document.querySelector(
+            `input[name="question-${index}"]:checked`
+          )
+        ) {
+          answered++;
+        }
+
+      });
+
+      const percent =
+        (answered / questions.length) * 100;
+
+      progressBar.style.width = percent + "%";
+      progressText.textContent =
+        `${answered} / ${questions.length}`;
+
+      warning.classList.remove("show");
+    }
+
+
+    function checkQuiz() {
+
+      let score = 0;
+      let unanswered = false;
+
+
+      questions.forEach((item, questionIndex) => {
+
+        const selected = document.querySelector(
+          `input[name="question-${questionIndex}"]:checked`
+        );
+
+        if (!selected) {
+          unanswered = true;
+        }
+
+      });
+
+
+      if (unanswered) {
+
+        warning.classList.add("show");
+
+        const firstUnanswered = questions.findIndex(
+          (_, index) =>
+            !document.querySelector(
+              `input[name="question-${index}"]:checked`
+            )
+        );
+
+        document
+          .querySelector(
+            `[data-question="${firstUnanswered}"]`
+          )
+          .scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+        return;
+      }
+
+
+      warning.classList.remove("show");
+
+
+      questions.forEach((item, questionIndex) => {
+
+        const questionCard =
+          document.querySelector(
+            `[data-question="${questionIndex}"]`
+          );
+
+        const selected = questionCard.querySelector(
+          'input[type="radio"]:checked'
+        );
+
+        const selectedIndex =
+          Number(selected.value);
+
+        const optionLabels =
+          questionCard.querySelectorAll(".option");
+
+        const explanation =
+          questionCard.querySelector(".explanation");
+
+
+        optionLabels.forEach(label => {
+
+          label.classList.remove(
+            "correct-answer",
+            "wrong-answer"
+          );
+
+        });
+
+
+        optionLabels[item.answer]
+          .classList.add("correct-answer");
+
+
+        if (selectedIndex === item.answer) {
+
+          score++;
+
+          questionCard.classList.add("correct-card");
+          questionCard.classList.remove("wrong-card");
+
+          explanation.className =
+            "explanation show ok";
+
+          explanation.innerHTML =
+            `<strong>✓ Правильно.</strong> ${item.explanation}`;
+
+        } else {
+
+          questionCard.classList.add("wrong-card");
+          questionCard.classList.remove("correct-card");
+
+          optionLabels[selectedIndex]
+            .classList.add("wrong-answer");
+
+          const correctLetter =
+            String.fromCharCode(65 + item.answer);
+
+          explanation.className =
+            "explanation show bad";
+
+          explanation.innerHTML = `
+            <strong>✕ Ошибка.</strong>
+            Правильный ответ: <strong>${correctLetter}</strong>.<br>
+            ${item.explanation}
+          `;
+        }
+
+      });
+
+
+      showResult(score);
+
+      submitButton.textContent =
+        "Результат проверен ✓";
+
+      submitButton.disabled = true;
+      submitButton.style.opacity = ".65";
+      submitButton.style.cursor = "default";
+
+
+      document
+        .querySelectorAll('input[type="radio"]')
+        .forEach(input => {
+
+          input.disabled = true;
+
+        });
+
+
+      result.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+    }
+
+
+    function showResult(score) {
+
+      const total = questions.length;
+      const wrong = total - score;
+      const percentage =
+        Math.round((score / total) * 100);
+
+      document.getElementById("score")
+        .textContent = `${score}/${total}`;
+
+      document.getElementById("correctCount")
+        .textContent = score;
+
+      document.getElementById("wrongCount")
+        .textContent = wrong;
+
+      document.getElementById("percent")
+        .textContent = percentage + "%";
+
+
+      let icon;
+      let title;
+      let description;
+
+
+      if (score >= 13) {
+
+        icon = "🏆";
+        title = "Отличный результат!";
+        description =
+          "Ты действительно хорошо разбираешься в нейросетях и современных AI-технологиях.";
+
+      }
+
+      else if (score >= 10) {
+
+        icon = "🔥";
+        title = "Очень неплохо!";
+        description =
+          "У тебя хороший уровень знаний об ИИ. Осталось разобраться всего в нескольких темах.";
+
+      }
+
+      else if (score >= 7) {
+
+        icon = "🧠";
+        title = "Хорошее начало";
+        description =
+          "Основы ты знаешь. Посмотри разбор ошибок ниже — так можно быстро улучшить результат.";
+
+      }
+
+      else {
+
+        icon = "📚";
+        title = "Есть что изучить";
+        description =
+          "Ничего страшного: ниже показаны правильные ответы и объяснения к каждому вопросу.";
+
+      }
+
+
+      document.getElementById("resultIcon")
+        .textContent = icon;
+
+      document.getElementById("resultTitle")
+        .textContent = title;
+
+      document.getElementById("resultDescription")
+        .textContent = description;
+
+      result.classList.add("show");
+
+    }
+
+
+    function resetQuiz() {
+
+      renderQuiz();
+
+      result.classList.remove("show");
+
+      warning.classList.remove("show");
+
+      submitButton.disabled = false;
+      submitButton.style.opacity = "1";
+      submitButton.style.cursor = "pointer";
+      submitButton.textContent =
+        "Проверить ответы";
+
+      progressBar.style.width = "0%";
+      progressText.textContent =
+        `0 / ${questions.length}`;
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    }
+
+
+    submitButton.addEventListener(
+      "click",
+      checkQuiz
+    );
+
+
+    renderQuiz();
+
+  </script>
+
+</body>
+</html>
