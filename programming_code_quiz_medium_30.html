@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Quiz — Викторина по коду</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070913;
+  --panel:rgba(18,22,39,.92);
+  --text:#f6f8ff;
+  --muted:#9ea8c2;
+  --blue:#6f7cff;
+  --cyan:#56d9ff;
+  --green:#39d98a;
+  --red:#ff647a;
+  --border:rgba(255,255,255,.09);
+}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 12% 6%,rgba(111,124,255,.24),transparent 30%),
+    radial-gradient(circle at 88% 10%,rgba(86,217,255,.14),transparent 29%),
+    radial-gradient(circle at 50% 100%,rgba(159,108,255,.10),transparent 38%),
+    var(--bg);
+  padding:18px 14px 70px;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);
+  background-size:36px 36px;
+  mask-image:linear-gradient(to bottom,black,transparent 92%);
+}
+.container{width:min(980px,100%);margin:auto;position:relative;z-index:2}
+.hero{text-align:center;padding:58px 10px 38px}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 14px;margin-bottom:18px;border-radius:999px;
+  border:1px solid rgba(111,124,255,.28);background:rgba(111,124,255,.09);
+  color:#c8ceff;font-size:13px;font-weight:800;letter-spacing:.45px
+}
+.hero h1{
+  font-size:clamp(40px,8vw,72px);line-height:.98;letter-spacing:-3.6px;margin-bottom:18px;
+  background:linear-gradient(120deg,#fff 8%,#c7cdff 46%,#7edfff 88%);
+  -webkit-background-clip:text;color:transparent
+}
+.hero p{max-width:720px;margin:auto;color:var(--muted);line-height:1.65;font-size:16px}
+.hero-stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:24px}
+.hero-stat{
+  padding:9px 13px;border:1px solid var(--border);border-radius:12px;
+  background:rgba(255,255,255,.035);color:#c7cee2;font-size:13px
+}
+.progress-card{
+  position:sticky;top:10px;z-index:20;margin-bottom:18px;padding:12px 16px;
+  border:1px solid var(--border);border-radius:16px;background:rgba(7,9,19,.84);
+  backdrop-filter:blur(18px);box-shadow:0 12px 35px rgba(0,0,0,.24)
+}
+.progress-top{display:flex;justify-content:space-between;margin-bottom:9px;color:#b7bfd5;font-size:13px}
+.progress{height:7px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+.progress-bar{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:.25s}
+.question{
+  padding:24px;margin-bottom:14px;border-radius:22px;border:1px solid var(--border);
+  background:linear-gradient(145deg,rgba(22,27,47,.95),rgba(10,13,27,.96));
+  box-shadow:0 14px 42px rgba(0,0,0,.19);transition:.2s
+}
+.question:hover{border-color:rgba(111,124,255,.24)}
+.question.correct-card{border-color:rgba(57,217,138,.48)}
+.question.wrong-card{border-color:rgba(255,100,122,.52)}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}
+.question-number,.topic{
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;
+  padding:6px 9px;border-radius:999px
+}
+.question-number{color:#a9b2ff;background:rgba(111,124,255,.10);border:1px solid rgba(111,124,255,.16)}
+.topic{color:#8ce2ff;background:rgba(86,217,255,.07);border:1px solid rgba(86,217,255,.14)}
+.question h2{font-size:19px;line-height:1.47;margin-bottom:16px;font-weight:680}
+.code{
+  margin:0 0 18px;padding:15px 16px;border-radius:14px;overflow:auto;
+  background:#080b16;border:1px solid rgba(255,255,255,.08);
+  color:#dce5ff;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre
+}
+.options{display:grid;gap:10px}
+.option{
+  display:flex;gap:12px;align-items:flex-start;padding:14px 15px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);cursor:pointer;
+  transition:background .18s,border-color .18s,transform .18s
+}
+.option:hover{background:rgba(111,124,255,.08);border-color:rgba(111,124,255,.3);transform:translateY(-1px)}
+.option input{display:none}
+.circle{
+  min-width:22px;width:22px;height:22px;border-radius:50%;
+  border:2px solid #68748f;display:grid;place-items:center;margin-top:1px
+}
+.circle::after{content:"";width:10px;height:10px;border-radius:50%;background:white;transform:scale(0);transition:.18s}
+.option:has(input:checked){border-color:rgba(111,124,255,.72);background:rgba(111,124,255,.13)}
+.option:has(input:checked) .circle{border-color:transparent;background:linear-gradient(135deg,var(--blue),var(--cyan))}
+.option:has(input:checked) .circle::after{transform:scale(1)}
+.option-text{color:#e3e8f5;font-size:15px;line-height:1.5}
+.option.correct-answer{border-color:rgba(57,217,138,.66);background:rgba(57,217,138,.11)}
+.option.wrong-answer{border-color:rgba(255,100,122,.64);background:rgba(255,100,122,.10)}
+.explanation{display:none;margin-top:17px;padding:15px 16px;border-radius:14px;font-size:14px;line-height:1.62}
+.explanation.show{display:block}
+.explanation.ok{color:#b4f2d3;border:1px solid rgba(57,217,138,.24);background:rgba(57,217,138,.08)}
+.explanation.bad{color:#ffc2cb;border:1px solid rgba(255,100,122,.22);background:rgba(255,100,122,.08)}
+.answer-comparison{display:grid;gap:7px;margin-top:8px}
+.your-answer{color:#ffafbb}.right-answer{color:#a9efcc}
+.actions{display:flex;justify-content:center;margin-top:28px}
+.check-button{
+  min-width:220px;padding:15px 28px;border:0;border-radius:15px;cursor:pointer;
+  font-size:15px;font-weight:800;color:white;
+  background:linear-gradient(135deg,#7868ff,#4ec8ff);
+  box-shadow:0 13px 38px rgba(87,91,255,.3);transition:.18s
+}
+.check-button:hover{transform:translateY(-2px);box-shadow:0 17px 44px rgba(87,91,255,.4)}
+.warning{display:none;margin-top:16px;text-align:center;color:#ffb0bb;font-size:14px}
+.warning.show{display:block}
+.result{
+  display:none;margin-top:34px;padding:32px 24px;text-align:center;border-radius:25px;
+  border:1px solid var(--border);
+  background:radial-gradient(circle at 50% 0%,rgba(111,124,255,.2),transparent 45%),rgba(17,22,38,.93);
+  box-shadow:0 20px 60px rgba(0,0,0,.26)
+}
+.result.show{display:block;animation:appear .4s ease}
+@keyframes appear{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+.result-icon{font-size:50px;margin-bottom:8px}
+.score{
+  font-size:clamp(50px,10vw,78px);font-weight:900;letter-spacing:-4px;
+  background:linear-gradient(135deg,#fff,#8bdfff);
+  -webkit-background-clip:text;color:transparent
+}
+.result h3{margin-top:6px;font-size:24px}
+.result p{max-width:620px;margin:10px auto 22px;color:var(--muted);line-height:1.65}
+.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:500px;margin:0 auto 22px}
+.result-stat{padding:14px 8px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+.result-stat strong{display:block;font-size:21px;margin-bottom:4px}.result-stat span{font-size:12px;color:var(--muted)}
+.result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.reset,.mistakes{
+  padding:12px 20px;border-radius:13px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);color:white;font-weight:650;cursor:pointer
+}
+.mistakes{background:rgba(111,124,255,.08)}
+.hidden-question{display:none}
+footer{text-align:center;padding-top:40px;color:#626b83;font-size:12px}
+@media(max-width:600px){
+  body{padding:10px 10px 50px}.hero{padding-top:43px}.hero h1{letter-spacing:-2px}
+  .question{padding:19px 16px;border-radius:19px}.question h2{font-size:17px}
+  .option{padding:13px}.option-text{font-size:14px}.result-stats{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main class="container">
+<section class="hero">
+  <div class="badge">💻 CODE QUIZ</div>
+  <h1>Понимаешь ли ты<br>строчки кода?</h1>
+  <p>30 вопросов средней сложности. Почти в каждом вопросе есть код: нужно определить результат, найти ошибку или понять, что делает программа.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">💻 30 вопросов</div>
+    <div class="hero-stat">🧠 Средняя сложность</div>
+    <div class="hero-stat">⌨️ Практика по коду</div>
+    <div class="hero-stat">✅ Автопроверка</div>
+  </div>
+</section>
+
+<div class="progress-card">
+  <div class="progress-top"><span>Прогресс</span><span id="progressText">0 / 30</span></div>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+</div>
+
+<form id="quiz"></form>
+
+<div class="actions">
+  <button class="check-button" id="submitButton" type="button">Проверить ответы</button>
+</div>
+<div class="warning" id="warning">Сначала ответь на все вопросы 👀</div>
+
+<section class="result" id="result">
+  <div class="result-icon" id="resultIcon">💻</div>
+  <div class="score" id="score">0/30</div>
+  <h3 id="resultTitle">Результат</h3>
+  <p id="resultDescription"></p>
+
+  <div class="result-stats">
+    <div class="result-stat"><strong id="correctCount">0</strong><span>правильных</span></div>
+    <div class="result-stat"><strong id="wrongCount">0</strong><span>ошибок</span></div>
+    <div class="result-stat"><strong id="percent">0%</strong><span>результат</span></div>
+  </div>
+
+  <div class="result-actions">
+    <button class="mistakes" id="mistakesButton" type="button">Показать только ошибки</button>
+    <button class="reset" type="button" onclick="resetQuiz()">Пройти ещё раз</button>
+  </div>
+</section>
+
+<footer>Code Quiz • 30 вопросов по программированию</footer>
+</main>
+
+<script>
+const questions = [
+{
+ topic:"Python",
+ question:"Что выведет этот код?",
+ code:"x = 5\nx += 3\nprint(x)",
+ options:["5","8","3","Ошибка"],
+ answer:1,
+ explanation:"Оператор += прибавляет значение к переменной. Было 5, после x += 3 стало 8."
+},
+{
+ topic:"Python",
+ question:"Что выведет программа?",
+ code:"name = 'Alex'\nprint(name[0])",
+ options:["A","Alex","x","Ошибка"],
+ answer:0,
+ explanation:"Индекс 0 означает первый символ строки, поэтому выводится A."
+},
+{
+ topic:"Python",
+ question:"Что выведет этот код?",
+ code:"nums = [10, 20, 30]\nprint(nums[-1])",
+ options:["10","20","30","Ошибка"],
+ answer:2,
+ explanation:"Индекс -1 в Python означает последний элемент списка."
+},
+{
+ topic:"Python",
+ question:"Что произойдёт?",
+ code:"for i in range(3):\n    print(i)",
+ options:["Выведет 1, 2, 3","Выведет 0, 1, 2","Выведет 0, 1, 2, 3","Ошибка"],
+ answer:1,
+ explanation:"range(3) создаёт последовательность 0, 1, 2."
+},
+{
+ topic:"Python",
+ question:"Что выведет этот код?",
+ code:"x = 10\nif x > 5:\n    print('yes')\nelse:\n    print('no')",
+ options:["yes","no","10","Ошибка"],
+ answer:0,
+ explanation:"10 больше 5, поэтому выполняется ветка if."
+},
+{
+ topic:"Python",
+ question:"Что вернёт функция?",
+ code:"def add(a, b):\n    return a + b\n\nprint(add(2, 4))",
+ options:["24","6","2 + 4","Ошибка"],
+ answer:1,
+ explanation:"Функция складывает два аргумента: 2 + 4 = 6."
+},
+{
+ topic:"Python",
+ question:"Что выведет программа?",
+ code:"text = 'hello'\nprint(len(text))",
+ options:["4","5","6","hello"],
+ answer:1,
+ explanation:"В строке hello пять символов."
+},
+{
+ topic:"Python",
+ question:"Что произойдёт с этим кодом?",
+ code:"x = '5'\ny = 2\nprint(x + y)",
+ options:["7","52","5 2","Ошибка"],
+ answer:3,
+ explanation:"В Python нельзя напрямую сложить строку и целое число. Нужно преобразовать тип одного из значений."
+},
+{
+ topic:"JavaScript",
+ question:"Что выведет этот код?",
+ code:"let x = 4;\nx++;\nconsole.log(x);",
+ options:["4","5","6","Ошибка"],
+ answer:1,
+ explanation:"Оператор ++ увеличивает значение на 1."
+},
+{
+ topic:"JavaScript",
+ question:"Что выведет программа?",
+ code:"console.log('2' + 3);",
+ options:["5","23","6","Ошибка"],
+ answer:1,
+ explanation:"Если один из операндов строка, оператор + выполняет конкатенацию: получается строка '23'."
+},
+{
+ topic:"JavaScript",
+ question:"Что выведет код?",
+ code:"console.log(2 === '2');",
+ options:["true","false","2","Ошибка"],
+ answer:1,
+ explanation:"Строгое сравнение === сравнивает и значение, и тип. Число 2 и строка '2' имеют разные типы."
+},
+{
+ topic:"JavaScript",
+ question:"Что выведет программа?",
+ code:"const arr = [1, 2, 3];\nconsole.log(arr.length);",
+ options:["2","3","4","Ошибка"],
+ answer:1,
+ explanation:"В массиве три элемента, поэтому length равен 3."
+},
+{
+ topic:"JavaScript",
+ question:"Что выведет этот код?",
+ code:"let x = 7;\nif (x % 2 === 0) {\n  console.log('even');\n} else {\n  console.log('odd');\n}",
+ options:["even","odd","7","Ошибка"],
+ answer:1,
+ explanation:"7 не делится на 2 без остатка, поэтому число нечётное."
+},
+{
+ topic:"JavaScript",
+ question:"Что делает метод push?",
+ code:"let a = [1, 2];\na.push(3);\nconsole.log(a);",
+ options:["Удаляет первый элемент","Добавляет 3 в конец массива","Добавляет 3 в начало","Очищает массив"],
+ answer:1,
+ explanation:"push добавляет новый элемент в конец массива."
+},
+{
+ topic:"JavaScript",
+ question:"Что выведет этот код?",
+ code:"function greet(name) {\n  return 'Hi, ' + name;\n}\nconsole.log(greet('Sam'));",
+ options:["Sam","Hi","Hi, Sam","Ошибка"],
+ answer:2,
+ explanation:"Функция возвращает строку 'Hi, ' и добавляет к ней имя."
+},
+{
+ topic:"C++",
+ question:"Что выведет программа?",
+ code:"#include <iostream>\nusing namespace std;\n\nint main() {\n    int x = 3;\n    cout << x * 2;\n}",
+ options:["3","5","6","32"],
+ answer:2,
+ explanation:"Переменная x равна 3, а 3 * 2 = 6."
+},
+{
+ topic:"C++",
+ question:"Что выведет этот код?",
+ code:"int x = 5;\nif (x == 5)\n    cout << \"yes\";",
+ options:["yes","no","5","Ошибка"],
+ answer:0,
+ explanation:"Оператор == сравнивает значения. x действительно равен 5."
+},
+{
+ topic:"C++",
+ question:"Что означает эта строка?",
+ code:"int numbers[3] = {10, 20, 30};",
+ options:["Создаёт массив из трёх целых чисел","Создаёт одну строку","Создаёт функцию","Создаёт три файла"],
+ answer:0,
+ explanation:"Это объявление массива из трёх элементов типа int."
+},
+{
+ topic:"C++",
+ question:"Что выведет этот код?",
+ code:"for (int i = 1; i <= 3; i++) {\n    cout << i;\n}",
+ options:["012","123","1234","321"],
+ answer:1,
+ explanation:"Цикл начинает с 1 и работает, пока i <= 3, поэтому выводит 1, 2, 3."
+},
+{
+ topic:"C++",
+ question:"Где ошибка?",
+ code:"int x = 10\ncout << x;",
+ options:["После 10 пропущена точка с запятой","Нельзя использовать cout","x должен быть строкой","Ошибки нет"],
+ answer:0,
+ explanation:"В C++ после объявления переменной нужна точка с запятой."
+},
+{
+ topic:"HTML",
+ question:"Что создаёт эта строка HTML?",
+ code:"<h1>Привет</h1>",
+ options:["Кнопку","Заголовок первого уровня","Ссылку","Картинку"],
+ answer:1,
+ explanation:"Тег h1 создаёт заголовок первого уровня."
+},
+{
+ topic:"HTML",
+ question:"Какой тег создаёт ссылку?",
+ code:"<a href=\"https://example.com\">Открыть</a>",
+ options:["<a>","<p>","<div>","<img>"],
+ answer:0,
+ explanation:"Тег a используется для создания гиперссылок."
+},
+{
+ topic:"HTML",
+ question:"Что делает этот код?",
+ code:"<img src=\"cat.png\" alt=\"Кот\">",
+ options:["Показывает изображение","Создаёт кнопку","Создаёт таблицу","Добавляет видео"],
+ answer:0,
+ explanation:"Тег img вставляет изображение. src задаёт путь к файлу."
+},
+{
+ topic:"CSS",
+ question:"Что делает эта строка CSS?",
+ code:"color: red;",
+ options:["Делает фон красным","Делает текст красным","Увеличивает размер текста","Скрывает элемент"],
+ answer:1,
+ explanation:"Свойство color задаёт цвет текста."
+},
+{
+ topic:"CSS",
+ question:"Что делает этот код?",
+ code:".box {\n  display: none;\n}",
+ options:["Увеличивает элемент","Скрывает элемент","Красит элемент","Делает элемент кнопкой"],
+ answer:1,
+ explanation:"display: none убирает элемент из отображения страницы."
+},
+{
+ topic:"SQL",
+ question:"Что делает запрос?",
+ code:"SELECT * FROM users;",
+ options:["Удаляет таблицу users","Получает все строки из users","Создаёт пользователя","Меняет все строки"],
+ answer:1,
+ explanation:"SELECT * запрашивает все столбцы, а FROM users указывает таблицу."
+},
+{
+ topic:"SQL",
+ question:"Что делает WHERE в этом запросе?",
+ code:"SELECT * FROM users WHERE age > 18;",
+ options:["Сортирует строки","Фильтрует строки","Удаляет строки","Создаёт таблицу"],
+ answer:1,
+ explanation:"WHERE задаёт условие отбора строк."
+},
+{
+ topic:"SQL",
+ question:"Что делает этот запрос?",
+ code:"UPDATE users\nSET name = 'Max'\nWHERE id = 3;",
+ options:["Удаляет пользователя 3","Меняет имя пользователя с id 3 на Max","Создаёт нового пользователя","Показывает всех пользователей"],
+ answer:1,
+ explanation:"UPDATE изменяет существующие строки, SET задаёт новое значение, WHERE выбирает нужную строку."
+},
+{
+ topic:"Логика",
+ question:"Что выведет код?",
+ code:"let a = 5;\nlet b = 10;\nconsole.log(a < b && b > 7);",
+ options:["true","false","5","10"],
+ answer:0,
+ explanation:"Оба условия истинны: 5 < 10 и 10 > 7. Оператор && требует истинности обоих."
+},
+{
+ topic:"Логика",
+ question:"Что выведет этот Python-код?",
+ code:"x = 0\nwhile x < 3:\n    x += 1\nprint(x)",
+ options:["0","2","3","Цикл бесконечный"],
+ answer:2,
+ explanation:"Цикл увеличивает x до тех пор, пока x не станет 3. После завершения print(x) выводит 3."
+}
+];
+
+const quiz=document.getElementById("quiz");
+const submitButton=document.getElementById("submitButton");
+const progressBar=document.getElementById("progressBar");
+const progressText=document.getElementById("progressText");
+const result=document.getElementById("result");
+const warning=document.getElementById("warning");
+const mistakesButton=document.getElementById("mistakesButton");
+let mistakesOnly=false;
+
+function esc(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function renderQuiz(){
+  quiz.innerHTML="";
+  questions.forEach((item,qi)=>{
+    const section=document.createElement("section");
+    section.className="question";
+    section.dataset.question=qi;
+
+    let optionsHTML="";
+    item.options.forEach((opt,oi)=>{
+      const letter=String.fromCharCode(65+oi);
+      optionsHTML+=`
+      <label class="option">
+        <input type="radio" name="question-${qi}" value="${oi}">
+        <span class="circle"></span>
+        <span class="option-text"><strong>${letter}.</strong> ${opt}</span>
+      </label>`;
+    });
+
+    section.innerHTML=`
+      <div class="meta">
+        <span class="question-number">Вопрос ${qi+1} из ${questions.length}</span>
+        <span class="topic">${item.topic}</span>
+      </div>
+      <h2>${item.question}</h2>
+      <pre class="code">${esc(item.code)}</pre>
+      <div class="options">${optionsHTML}</div>
+      <div class="explanation"></div>
+    `;
+    quiz.appendChild(section);
+  });
+
+  document.querySelectorAll('input[type="radio"]').forEach(input=>{
+    input.addEventListener("change",updateProgress);
+  });
+}
+
+function updateProgress(){
+  let answered=0;
+  questions.forEach((_,i)=>{
+    if(document.querySelector(`input[name="question-${i}"]:checked`)) answered++;
+  });
+  progressBar.style.width=(answered/questions.length*100)+"%";
+  progressText.textContent=`${answered} / ${questions.length}`;
+  warning.classList.remove("show");
+}
+
+function checkQuiz(){
+  let firstUnanswered=-1;
+
+  for(let i=0;i<questions.length;i++){
+    if(!document.querySelector(`input[name="question-${i}"]:checked`)){
+      firstUnanswered=i;
+      break;
+    }
+  }
+
+  if(firstUnanswered!==-1){
+    warning.classList.add("show");
+    document.querySelector(`[data-question="${firstUnanswered}"]`).scrollIntoView({
+      behavior:"smooth",
+      block:"center"
+    });
+    return;
+  }
+
+  let score=0;
+
+  questions.forEach((item,qi)=>{
+    const card=document.querySelector(`[data-question="${qi}"]`);
+    const selected=card.querySelector('input[type="radio"]:checked');
+    const selectedIndex=Number(selected.value);
+    const labels=card.querySelectorAll(".option");
+    const exp=card.querySelector(".explanation");
+
+    labels.forEach(l=>l.classList.remove("correct-answer","wrong-answer"));
+    labels[item.answer].classList.add("correct-answer");
+
+    const selectedText=item.options[selectedIndex];
+    const correctText=item.options[item.answer];
+
+    if(selectedIndex===item.answer){
+      score++;
+      card.classList.add("correct-card");
+      card.classList.remove("wrong-card");
+      exp.className="explanation show ok";
+      exp.innerHTML=`<strong>✓ Правильно.</strong><br><br>${item.explanation}`;
+    }else{
+      card.classList.add("wrong-card");
+      card.classList.remove("correct-card");
+      labels[selectedIndex].classList.add("wrong-answer");
+      exp.className="explanation show bad";
+      exp.innerHTML=`
+        <strong>✕ Ошибка</strong>
+        <div class="answer-comparison">
+          <div class="your-answer"><strong>Ваш ответ:</strong> ${selectedText}</div>
+          <div class="right-answer"><strong>Правильный ответ:</strong> ${correctText}</div>
+        </div>
+        <br>${item.explanation}`;
+    }
+  });
+
+  document.querySelectorAll('input[type="radio"]').forEach(i=>i.disabled=true);
+  submitButton.disabled=true;
+  submitButton.textContent="Результат проверен ✓";
+  submitButton.style.opacity=".65";
+  submitButton.style.cursor="default";
+
+  showResult(score);
+  result.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function showResult(score){
+  const total=questions.length;
+  const wrong=total-score;
+  const pct=Math.round(score/total*100);
+
+  document.getElementById("score").textContent=`${score}/${total}`;
+  document.getElementById("correctCount").textContent=score;
+  document.getElementById("wrongCount").textContent=wrong;
+  document.getElementById("percent").textContent=pct+"%";
+
+  let icon,title,desc;
+
+  if(score>=27){
+    icon="🏆";
+    title="Отлично понимаешь код!";
+    desc="Очень сильный результат. Ты уверенно читаешь код на нескольких языках и хорошо замечаешь детали.";
+  }else if(score>=22){
+    icon="🔥";
+    title="Очень хороший результат!";
+    desc="Ты хорошо понимаешь большую часть кода. Ошибки остались только в отдельных местах.";
+  }else if(score>=16){
+    icon="💻";
+    title="Хорошая база";
+    desc="Основные конструкции ты понимаешь. Разбор ошибок поможет быстро закрыть пробелы.";
+  }else if(score>=10){
+    icon="🧠";
+    title="Неплохо";
+    desc="Базовые вещи уже понятны, но стоит ещё потренироваться читать код строка за строкой.";
+  }else{
+    icon="📚";
+    title="Есть что прокачать";
+    desc="Эта викторина хорошо подходит для тренировки. Посмотри объяснения и попробуй пройти её ещё раз.";
+  }
+
+  document.getElementById("resultIcon").textContent=icon;
+  document.getElementById("resultTitle").textContent=title;
+  document.getElementById("resultDescription").textContent=desc;
+  result.classList.add("show");
+}
+
+mistakesButton.addEventListener("click",()=>{
+  mistakesOnly=!mistakesOnly;
+
+  document.querySelectorAll(".question").forEach(card=>{
+    const wrong=card.classList.contains("wrong-card");
+    card.classList.toggle("hidden-question",mistakesOnly && !wrong);
+  });
+
+  mistakesButton.textContent=mistakesOnly
+    ? "Показать все вопросы"
+    : "Показать только ошибки";
+
+  window.scrollTo({top:result.offsetTop-20,behavior:"smooth"});
+});
+
+function resetQuiz(){
+  mistakesOnly=false;
+  renderQuiz();
+
+  result.classList.remove("show");
+  warning.classList.remove("show");
+
+  submitButton.disabled=false;
+  submitButton.textContent="Проверить ответы";
+  submitButton.style.opacity="1";
+  submitButton.style.cursor="pointer";
+
+  progressBar.style.width="0%";
+  progressText.textContent=`0 / ${questions.length}`;
+  mistakesButton.textContent="Показать только ошибки";
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+submitButton.addEventListener("click",checkQuiz);
+renderQuiz();
+</script>
+</body>
+</html>
