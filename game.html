@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Gaming Quiz — Викторина про игры</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #080914;
+      --card: rgba(18, 20, 39, 0.9);
+      --text: #f7f8ff;
+      --muted: #a3a9c3;
+
+      --purple: #8d6cff;
+      --blue: #55b8ff;
+      --cyan: #64f0ff;
+
+      --green: #38d68b;
+      --red: #ff6478;
+
+      --border: rgba(255,255,255,.09);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+      color: var(--text);
+
+      background:
+        radial-gradient(
+          circle at 15% 5%,
+          rgba(115, 79, 255, .22),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 90% 10%,
+          rgba(56, 181, 255, .17),
+          transparent 32%
+        ),
+        radial-gradient(
+          circle at 50% 100%,
+          rgba(75, 111, 255, .12),
+          transparent 38%
+        ),
+        #070812;
+
+      padding: 20px 14px 70px;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+
+      pointer-events: none;
+
+      background-image:
+        linear-gradient(
+          rgba(255,255,255,.018) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,.018) 1px,
+          transparent 1px
+        );
+
+      background-size: 40px 40px;
+
+      mask-image:
+        linear-gradient(
+          to bottom,
+          black,
+          transparent 90%
+        );
+    }
+
+    .container {
+      width: min(900px, 100%);
+      margin: auto;
+
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero {
+      text-align: center;
+
+      padding: 55px 10px 38px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 8px 14px;
+
+      margin-bottom: 18px;
+
+      border-radius: 999px;
+
+      border:
+        1px solid rgba(130, 110, 255, .28);
+
+      background:
+        rgba(121, 94, 255, .09);
+
+      color: #c5b8ff;
+
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hero h1 {
+      font-size:
+        clamp(39px, 8vw, 68px);
+
+      line-height: 1;
+
+      letter-spacing: -3px;
+
+      margin-bottom: 18px;
+
+      background:
+        linear-gradient(
+          120deg,
+          #ffffff 10%,
+          #b9b0ff 48%,
+          #65d5ff 88%
+        );
+
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      max-width: 620px;
+      margin: auto;
+
+      color: var(--muted);
+
+      line-height: 1.65;
+
+      font-size: 16px;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+
+      gap: 10px;
+
+      flex-wrap: wrap;
+
+      margin-top: 24px;
+    }
+
+    .hero-stat {
+      padding: 9px 13px;
+
+      border-radius: 12px;
+
+      border: 1px solid var(--border);
+
+      background:
+        rgba(255,255,255,.035);
+
+      color: #c7cce0;
+
+      font-size: 13px;
+    }
+
+    .progress-card {
+      position: sticky;
+      top: 10px;
+
+      z-index: 20;
+
+      padding: 12px 16px;
+
+      margin-bottom: 18px;
+
+      border-radius: 16px;
+
+      border: 1px solid var(--border);
+
+      background:
+        rgba(8, 9, 20, .84);
+
+      backdrop-filter:
+        blur(18px);
+
+      box-shadow:
+        0 12px 35px
+        rgba(0,0,0,.23);
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+
+      margin-bottom: 9px;
+
+      color: #b4bad2;
+
+      font-size: 13px;
+    }
+
+    .progress {
+      width: 100%;
+      height: 7px;
+
+      overflow: hidden;
+
+      border-radius: 999px;
+
+      background:
+        rgba(255,255,255,.08);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+
+      border-radius: inherit;
+
+      background:
+        linear-gradient(
+          90deg,
+          var(--purple),
+          var(--blue)
+        );
+
+      transition:
+        width .3s ease;
+    }
+
+    .question {
+      padding: 24px;
+
+      margin-bottom: 14px;
+
+      border-radius: 22px;
+
+      border: 1px solid var(--border);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(22, 24, 45, .92),
+          rgba(11, 13, 28, .93)
+        );
+
+      box-shadow:
+        0 13px 40px
+        rgba(0,0,0,.18);
+
+      transition:
+        border-color .2s ease;
+    }
+
+    .question:hover {
+      border-color:
+        rgba(124, 112, 255, .22);
+    }
+
+    .question.correct-card {
+      border-color:
+        rgba(56, 214, 139, .46);
+    }
+
+    .question.wrong-card {
+      border-color:
+        rgba(255, 100, 120, .5);
+    }
+
+    .question-number {
+      margin-bottom: 10px;
+
+      font-size: 12px;
+      font-weight: 800;
+
+      letter-spacing: 1px;
+
+      text-transform: uppercase;
+
+      color: #8a9fff;
+    }
+
+    .question h2 {
+      margin-bottom: 18px;
+
+      font-size: 19px;
+      font-weight: 650;
+
+      line-height: 1.45;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+
+      gap: 12px;
+
+      padding: 14px 15px;
+
+      border-radius: 14px;
+
+      border:
+        1px solid
+        rgba(255,255,255,.08);
+
+      background:
+        rgba(255,255,255,.025);
+
+      cursor: pointer;
+
+      transition:
+        background .18s ease,
+        border-color .18s ease,
+        transform .18s ease;
+    }
+
+    .option:hover {
+      transform:
+        translateY(-1px);
+
+      background:
+        rgba(112, 96, 255, .08);
+
+      border-color:
+        rgba(128, 116, 255, .3);
+    }
+
+    .option input {
+      display: none;
+    }
+
+    .circle {
+      min-width: 22px;
+      width: 22px;
+      height: 22px;
+
+      border-radius: 50%;
+
+      border:
+        2px solid #66708f;
+
+      display: grid;
+      place-items: center;
+
+      margin-top: 1px;
+    }
+
+    .circle::after {
+      content: "";
+
+      width: 10px;
+      height: 10px;
+
+      border-radius: 50%;
+
+      background: white;
+
+      transform: scale(0);
+
+      transition: .18s ease;
+    }
+
+    .option:has(input:checked) {
+      border-color:
+        rgba(119, 103, 255, .7);
+
+      background:
+        rgba(111, 94, 255, .13);
+    }
+
+    .option:has(input:checked)
+    .circle {
+      border-color: transparent;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--purple),
+          var(--blue)
+        );
+    }
+
+    .option:has(input:checked)
+    .circle::after {
+      transform: scale(1);
+    }
+
+    .option-text {
+      color: #e1e4f3;
+
+      font-size: 15px;
+
+      line-height: 1.5;
+    }
+
+    .option.correct-answer {
+      border-color:
+        rgba(56,214,139,.65);
+
+      background:
+        rgba(56,214,139,.11);
+    }
+
+    .option.wrong-answer {
+      border-color:
+        rgba(255,100,120,.62);
+
+      background:
+        rgba(255,100,120,.1);
+    }
+
+    .explanation {
+      display: none;
+
+      margin-top: 17px;
+
+      padding: 15px 16px;
+
+      border-radius: 14px;
+
+      font-size: 14px;
+
+      line-height: 1.6;
+    }
+
+    .explanation.show {
+      display: block;
+    }
+
+    .explanation.ok {
+      color: #acf1ce;
+
+      border:
+        1px solid
+        rgba(56,214,139,.23);
+
+      background:
+        rgba(56,214,139,.08);
+    }
+
+    .explanation.bad {
+      color: #ffc0c9;
+
+      border:
+        1px solid
+        rgba(255,100,120,.22);
+
+      background:
+        rgba(255,100,120,.08);
+    }
+
+    .answer-comparison {
+      display: grid;
+      gap: 7px;
+
+      margin-top: 8px;
+    }
+
+    .your-answer {
+      color: #ffacb8;
+    }
+
+    .right-answer {
+      color: #a5efca;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+
+      margin-top: 26px;
+    }
+
+    .check-button {
+      min-width: 220px;
+
+      padding: 15px 28px;
+
+      border: 0;
+      outline: none;
+
+      border-radius: 15px;
+
+      cursor: pointer;
+
+      font-size: 15px;
+      font-weight: 800;
+
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #8067ff,
+          #4ebcff
+        );
+
+      box-shadow:
+        0 13px 38px
+        rgba(91, 90, 255, .28);
+
+      transition:
+        transform .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .check-button:hover {
+      transform:
+        translateY(-2px);
+
+      box-shadow:
+        0 17px 44px
+        rgba(91, 90, 255, .38);
+    }
+
+    .warning {
+      display: none;
+
+      margin-top: 16px;
+
+      text-align: center;
+
+      color: #ffabb7;
+
+      font-size: 14px;
+    }
+
+    .warning.show {
+      display: block;
+    }
+
+    .result {
+      display: none;
+
+      margin-top: 34px;
+
+      padding: 32px 24px;
+
+      text-align: center;
+
+      border-radius: 25px;
+
+      border:
+        1px solid var(--border);
+
+      background:
+        radial-gradient(
+          circle at 50% 0%,
+          rgba(106, 92, 255, .2),
+          transparent 45%
+        ),
+        rgba(17, 19, 38, .9);
+
+      box-shadow:
+        0 20px 60px
+        rgba(0,0,0,.25);
+    }
+
+    .result.show {
+      display: block;
+
+      animation:
+        appear .4s ease;
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform:
+          translateY(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform:
+          translateY(0);
+      }
+    }
+
+    .result-icon {
+      font-size: 50px;
+
+      margin-bottom: 9px;
+    }
+
+    .score {
+      font-size:
+        clamp(48px, 10vw, 74px);
+
+      font-weight: 900;
+
+      letter-spacing: -3px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #ffffff,
+          #8bdcff
+        );
+
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .result h3 {
+      margin-top: 6px;
+
+      font-size: 23px;
+    }
+
+    .result p {
+      max-width: 540px;
+
+      margin:
+        10px auto
+        22px;
+
+      color: var(--muted);
+
+      line-height: 1.6;
+    }
+
+    .result-stats {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 10px;
+
+      max-width: 470px;
+
+      margin:
+        0 auto
+        22px;
+    }
+
+    .result-stat {
+      padding: 14px 8px;
+
+      border-radius: 14px;
+
+      border: 1px solid var(--border);
+
+      background:
+        rgba(255,255,255,.04);
+    }
+
+    .result-stat strong {
+      display: block;
+
+      margin-bottom: 4px;
+
+      font-size: 21px;
+    }
+
+    .result-stat span {
+      color: var(--muted);
+
+      font-size: 12px;
+    }
+
+    .reset {
+      padding: 12px 20px;
+
+      border-radius: 13px;
+
+      border:
+        1px solid
+        rgba(255,255,255,.12);
+
+      background:
+        rgba(255,255,255,.05);
+
+      color: white;
+
+      font-weight: 650;
+
+      cursor: pointer;
+    }
+
+    footer {
+      text-align: center;
+
+      padding-top: 40px;
+
+      color: #626980;
+
+      font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding:
+          10px 10px 50px;
+      }
+
+      .hero {
+        padding-top: 43px;
+      }
+
+      .hero h1 {
+        letter-spacing: -2px;
+      }
+
+      .question {
+        padding: 19px 16px;
+
+        border-radius: 19px;
+      }
+
+      .question h2 {
+        font-size: 17px;
+      }
+
+      .option {
+        padding: 13px;
+      }
+
+      .option-text {
+        font-size: 14px;
+      }
+
+      .result-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+
+    <section class="hero">
+
+      <div class="badge">
+        🎮 GAMING QUIZ
+      </div>
+
+      <h1>
+        Насколько хорошо<br>
+        ты знаешь игры?
+      </h1>
+
+      <p>
+        15 вопросов про компьютерные игры, игровые жанры,
+        платформы, технологии и известные игровые серии.
+      </p>
+
+      <div class="hero-stats">
+
+        <div class="hero-stat">
+          🎮 15 вопросов
+        </div>
+
+        <div class="hero-stat">
+          🧠 Средняя сложность
+        </div>
+
+        <div class="hero-stat">
+          ⚡ Автопроверка
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <div class="progress-card">
+
+      <div class="progress-top">
+
+        <span>
+          Прогресс
+        </span>
+
+        <span id="progressText">
+          0 / 15
+        </span>
+
+      </div>
+
+      <div class="progress">
+
+        <div
+          class="progress-bar"
+          id="progressBar"
+        ></div>
+
+      </div>
+
+    </div>
+
+
+    <form id="quiz"></form>
+
+
+    <div class="actions">
+
+      <button
+        class="check-button"
+        id="submitButton"
+        type="button"
+      >
+        Проверить ответы
+      </button>
+
+    </div>
+
+
+    <div
+      class="warning"
+      id="warning"
+    >
+      Сначала ответь на все вопросы 👀
+    </div>
+
+
+    <section
+      class="result"
+      id="result"
+    >
+
+      <div
+        class="result-icon"
+        id="resultIcon"
+      >
+        🎮
+      </div>
+
+      <div
+        class="score"
+        id="score"
+      >
+        0/15
+      </div>
+
+      <h3 id="resultTitle">
+        Результат
+      </h3>
+
+      <p id="resultDescription"></p>
+
+
+      <div class="result-stats">
+
+        <div class="result-stat">
+
+          <strong id="correctCount">
+            0
+          </strong>
+
+          <span>
+            правильных
+          </span>
+
+        </div>
+
+        <div class="result-stat">
+
+          <strong id="wrongCount">
+            0
+          </strong>
+
+          <span>
+            ошибок
+          </span>
+
+        </div>
+
+        <div class="result-stat">
+
+          <strong id="percent">
+            0%
+          </strong>
+
+          <span>
+            результат
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="reset"
+        onclick="resetQuiz()"
+      >
+        Пройти ещё раз
+      </button>
+
+    </section>
+
+
+    <footer>
+      Gaming Quiz • Викторина про компьютерные игры
+    </footer>
+
+  </main>
+
+
+  <script>
+
+    const questions = [
+
+      {
+        question:
+          "Какая компания создала игровую платформу Steam?",
+
+        options: [
+          "Valve",
+          "Sony",
+          "Nintendo",
+          "Ubisoft"
+        ],
+
+        answer: 0,
+
+        explanation:
+          "Steam был создан компанией Valve, также известной по Half-Life, Portal и Counter-Strike."
+      },
+
+
+      {
+        question:
+          "К какому жанру в первую очередь относится Minecraft?",
+
+        options: [
+          "Гоночный симулятор",
+          "Sandbox",
+          "Файтинг",
+          "MOBA"
+        ],
+
+        answer: 1,
+
+        explanation:
+          "Minecraft — это sandbox-игра, где игрок получает большую свободу строительства, исследования и выживания."
+      },
+
+
+      {
+        question:
+          "Какая игровая серия включает персонажа Геральта из Ривии?",
+
+        options: [
+          "Dragon Age",
+          "Dark Souls",
+          "The Witcher",
+          "Diablo"
+        ],
+
+        answer: 2,
+
+        explanation:
+          "Геральт из Ривии — главный герой серии The Witcher."
+      },
+
+
+      {
+        question:
+          "Что означает сокращение FPS, когда речь идёт о производительности игры?",
+
+        options: [
+          "Frames Per Second",
+          "Fast Play System",
+          "First Person Server",
+          "Frame Power Setting"
+        ],
+
+        answer: 0,
+
+        explanation:
+          "FPS означает Frames Per Second — количество кадров, отображаемых за одну секунду."
+      },
+
+
+      {
+        question:
+          "Какая игра популяризировала жанр Battle Royale в конце 2010-х вместе с PUBG?",
+
+        options: [
+          "Portal 2",
+          "Fortnite",
+          "The Sims 4",
+          "Euro Truck Simulator 2"
+        ],
+
+        answer: 1,
+
+        explanation:
+          "Fortnite Battle Royale стала одной из самых известных игр жанра и помогла резко увеличить его популярность."
+      },
+
+
+      {
+        question:
+          "Что такое DLC?",
+
+        options: [
+          "Дополнительный загружаемый контент для игры",
+          "Игровой движок",
+          "Система защиты видеокарты",
+          "Тип игрового сервера"
+        ],
+
+        answer: 0,
+
+        explanation:
+          "DLC расшифровывается как Downloadable Content — дополнительный контент, который выпускается для игры."
+      },
+
+
+      {
+        question:
+          "Как называется устройство, которое отвечает за обработку графики в компьютере?",
+
+        options: [
+          "CPU",
+          "SSD",
+          "GPU",
+          "RAM"
+        ],
+
+        answer: 2,
+
+        explanation:
+          "GPU — графический процессор. Именно он выполняет большую часть вычислений, связанных с отображением игровой графики."
+      },
+
+
+      {
+        question:
+          "Какая серия игр известна персонажем Мастером Чифом?",
+
+        options: [
+          "Halo",
+          "Doom",
+          "Mass Effect",
+          "Fallout"
+        ],
+
+        answer: 0,
+
+        explanation:
+          "Мастер Чиф — главный герой многих игр серии Halo."
+      },
+
+
+      {
+        question:
+          "Что означает термин NPC?",
+
+        options: [
+          "Новый игровой компьютер",
+          "Неигровой персонаж, управляемый игрой",
+          "Игрок с низким рейтингом",
+          "Сетевой протокол"
+        ],
+
+        answer: 1,
+
+        explanation:
+          "NPC — Non-Player Character, то есть персонаж, которым напрямую не управляет игрок."
+      },
+
+
+      {
+        question:
+          "Какая компания выпускает консоли PlayStation?",
+
+        options: [
+          "Microsoft",
+          "Sony",
+          "Nintendo",
+          "Valve"
+        ],
+
+        answer: 1,
+
+        explanation:
+          "Игровые консоли PlayStation выпускает компания Sony."
+      },
+
+
+      {
+        question:
+          "Что обычно означает термин open world?",
+
+        options: [
+          "Игра доступна бесплатно",
+          "В игре есть большой открытый мир, который можно свободно исследовать",
+          "Игра работает только онлайн",
+          "В игре нет сюжета"
+        ],
+
+        answer: 1,
+
+        explanation:
+          "Open world — это структура игры, позволяющая игроку свободно исследовать крупный игровой мир."
+      },
+
+
+      {
+        question:
+          "Как называется игровой жанр League of Legends и Dota 2?",
+
+        options: [
+          "MMORPG",
+          "MOBA",
+          "RTS",
+          "Battle Royale"
+        ],
+
+        answer: 1,
+
+        explanation:
+          "League of Legends и Dota 2 относятся к жанру MOBA — Multiplayer Online Battle Arena."
+      },
+
+
+      {
+        question:
+          "Что делает технология ray tracing в современных играх?",
+
+        options: [
+          "Ускоряет интернет",
+          "Улучшает симуляцию освещения, отражений и теней",
+          "Уменьшает размер игры",
+          "Автоматически увеличивает FPS в два раза"
+        ],
+
+        answer: 1,
+
+        explanation:
+          "Ray tracing моделирует поведение лучей света, помогая создавать более реалистичные отражения, освещение и тени."
+      },
+
+
+      {
+        question:
+          "Какая серия игр происходит в постапокалиптическом мире с убежищами Vault?",
+
+        options: [
+          "Fallout",
+          "Far Cry",
+          "Just Cause",
+          "BioShock"
+        ],
+
+        answer: 0,
+
+        explanation:
+          "Убежища Vault являются одной из самых известных частей вселенной Fallout."
+      },
+
+
+      {
+        question:
+          "Что означает термин respawn в многопользовательских играх?",
+
+        options: [
+          "Удаление игры",
+          "Повторное появление персонажа после поражения",
+          "Сохранение прогресса",
+          "Обновление игрового клиента"
+        ],
+
+        answer: 1,
+
+        explanation:
+          "Respawn — повторное появление персонажа в игре после смерти или поражения."
+      }
+
+    ];
+
+
+    const quiz =
+      document.getElementById("quiz");
+
+    const submitButton =
+      document.getElementById("submitButton");
+
+    const progressBar =
+      document.getElementById("progressBar");
+
+    const progressText =
+      document.getElementById("progressText");
+
+    const result =
+      document.getElementById("result");
+
+    const warning =
+      document.getElementById("warning");
+
+
+    function renderQuiz() {
+
+      quiz.innerHTML = "";
+
+
+      questions.forEach(
+        (item, questionIndex) => {
+
+          const questionElement =
+            document.createElement("section");
+
+
+          questionElement.className =
+            "question";
+
+
+          questionElement.dataset.question =
+            questionIndex;
+
+
+          let optionsHTML = "";
+
+
+          item.options.forEach(
+            (option, optionIndex) => {
+
+              const letter =
+                String.fromCharCode(
+                  65 + optionIndex
+                );
+
+
+              optionsHTML += `
+
+                <label class="option">
+
+                  <input
+                    type="radio"
+                    name="question-${questionIndex}"
+                    value="${optionIndex}"
+                  >
+
+                  <span class="circle"></span>
+
+                  <span class="option-text">
+
+                    <strong>
+                      ${letter}.
+                    </strong>
+
+                    ${option}
+
+                  </span>
+
+                </label>
+
+              `;
+
+            }
+          );
+
+
+          questionElement.innerHTML = `
+
+            <div class="question-number">
+              Вопрос
+              ${questionIndex + 1}
+              из
+              ${questions.length}
+            </div>
+
+            <h2>
+              ${item.question}
+            </h2>
+
+            <div class="options">
+              ${optionsHTML}
+            </div>
+
+            <div class="explanation"></div>
+
+          `;
+
+
+          quiz.appendChild(
+            questionElement
+          );
+
+        }
+      );
+
+
+      document
+        .querySelectorAll(
+          'input[type="radio"]'
+        )
+        .forEach(input => {
+
+          input.addEventListener(
+            "change",
+            updateProgress
+          );
+
+        });
+
+    }
+
+
+    function updateProgress() {
+
+      let answered = 0;
+
+
+      questions.forEach(
+        (_, index) => {
+
+          const selected =
+            document.querySelector(
+              `input[name="question-${index}"]:checked`
+            );
+
+
+          if (selected) {
+            answered++;
+          }
+
+        }
+      );
+
+
+      const percentage =
+        answered /
+        questions.length *
+        100;
+
+
+      progressBar.style.width =
+        percentage + "%";
+
+
+      progressText.textContent =
+        `${answered} / ${questions.length}`;
+
+
+      warning.classList.remove(
+        "show"
+      );
+
+    }
+
+
+    function checkQuiz() {
+
+      let score = 0;
+      let unanswered = false;
+
+
+      questions.forEach(
+        (_, questionIndex) => {
+
+          const selected =
+            document.querySelector(
+              `input[name="question-${questionIndex}"]:checked`
+            );
+
+
+          if (!selected) {
+            unanswered = true;
+          }
+
+        }
+      );
+
+
+      if (unanswered) {
+
+        warning.classList.add(
+          "show"
+        );
+
+
+        const firstUnanswered =
+          questions.findIndex(
+            (_, index) =>
+              !document.querySelector(
+                `input[name="question-${index}"]:checked`
+              )
+          );
+
+
+        document
+          .querySelector(
+            `[data-question="${firstUnanswered}"]`
+          )
+          .scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+
+        return;
+      }
+
+
+      warning.classList.remove(
+        "show"
+      );
+
+
+      questions.forEach(
+        (item, questionIndex) => {
+
+          const questionCard =
+            document.querySelector(
+              `[data-question="${questionIndex}"]`
+            );
+
+
+          const selected =
+            questionCard.querySelector(
+              'input[type="radio"]:checked'
+            );
+
+
+          const selectedIndex =
+            Number(
+              selected.value
+            );
+
+
+          const optionLabels =
+            questionCard.querySelectorAll(
+              ".option"
+            );
+
+
+          const explanation =
+            questionCard.querySelector(
+              ".explanation"
+            );
+
+
+          optionLabels.forEach(
+            label => {
+
+              label.classList.remove(
+                "correct-answer",
+                "wrong-answer"
+              );
+
+            }
+          );
+
+
+          optionLabels[item.answer]
+            .classList.add(
+              "correct-answer"
+            );
+
+
+          const selectedAnswerText =
+            item.options[
+              selectedIndex
+            ];
+
+
+          const correctAnswerText =
+            item.options[
+              item.answer
+            ];
+
+
+          if (
+            selectedIndex ===
+            item.answer
+          ) {
+
+            score++;
+
+
+            questionCard
+              .classList
+              .add(
+                "correct-card"
+              );
+
+
+            questionCard
+              .classList
+              .remove(
+                "wrong-card"
+              );
+
+
+            explanation.className =
+              "explanation show ok";
+
+
+            explanation.innerHTML = `
+
+              <strong>
+                ✓ Правильно!
+              </strong>
+
+              <br><br>
+
+              ${item.explanation}
+
+            `;
+
+          }
+
+          else {
+
+            questionCard
+              .classList
+              .add(
+                "wrong-card"
+              );
+
+
+            questionCard
+              .classList
+              .remove(
+                "correct-card"
+              );
+
+
+            optionLabels[
+              selectedIndex
+            ]
+              .classList
+              .add(
+                "wrong-answer"
+              );
+
+
+            explanation.className =
+              "explanation show bad";
+
+
+            explanation.innerHTML = `
+
+              <strong>
+                ✕ Ошибка
+              </strong>
+
+              <div class="answer-comparison">
+
+                <div class="your-answer">
+
+                  <strong>
+                    Ваш ответ:
+                  </strong>
+
+                  ${selectedAnswerText}
+
+                </div>
+
+
+                <div class="right-answer">
+
+                  <strong>
+                    Правильный ответ:
+                  </strong>
+
+                  ${correctAnswerText}
+
+                </div>
+
+              </div>
+
+              <br>
+
+              ${item.explanation}
+
+            `;
+
+          }
+
+        }
+      );
+
+
+      showResult(score);
+
+
+      submitButton.textContent =
+        "Результат проверен ✓";
+
+
+      submitButton.disabled = true;
+
+
+      submitButton.style.opacity =
+        ".65";
+
+
+      submitButton.style.cursor =
+        "default";
+
+
+      document
+        .querySelectorAll(
+          'input[type="radio"]'
+        )
+        .forEach(input => {
+
+          input.disabled = true;
+
+        });
+
+
+      result.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+    }
+
+
+    function showResult(score) {
+
+      const total =
+        questions.length;
+
+
+      const wrong =
+        total - score;
+
+
+      const percentage =
+        Math.round(
+          score /
+          total *
+          100
+        );
+
+
+      document
+        .getElementById(
+          "score"
+        )
+        .textContent =
+        `${score}/${total}`;
+
+
+      document
+        .getElementById(
+          "correctCount"
+        )
+        .textContent =
+        score;
+
+
+      document
+        .getElementById(
+          "wrongCount"
+        )
+        .textContent =
+        wrong;
+
+
+      document
+        .getElementById(
+          "percent"
+        )
+        .textContent =
+        percentage + "%";
+
+
+      let icon;
+      let title;
+      let description;
+
+
+      if (score >= 13) {
+
+        icon = "🏆";
+
+        title =
+          "Настоящий геймер!";
+
+        description =
+          "Отличный результат. Ты очень хорошо разбираешься в играх и игровых технологиях.";
+
+      }
+
+      else if (score >= 10) {
+
+        icon = "🎮";
+
+        title =
+          "Очень хороший результат!";
+
+        description =
+          "У тебя хороший игровой кругозор. До максимального результата осталось совсем немного.";
+
+      }
+
+      else if (score >= 7) {
+
+        icon = "🕹️";
+
+        title =
+          "Неплохо!";
+
+        description =
+          "Основные игровые термины и серии ты знаешь. Посмотри ошибки и попробуй ещё раз.";
+
+      }
+
+      else {
+
+        icon = "👾";
+
+        title =
+          "Пора прокачать знания";
+
+        description =
+          "Ниже можно посмотреть правильные ответы и объяснения, а потом пройти викторину ещё раз.";
+
+      }
+
+
+      document
+        .getElementById(
+          "resultIcon"
+        )
+        .textContent =
+        icon;
+
+
+      document
+        .getElementById(
+          "resultTitle"
+        )
+        .textContent =
+        title;
+
+
+      document
+        .getElementById(
+          "resultDescription"
+        )
+        .textContent =
+        description;
+
+
+      result.classList.add(
+        "show"
+      );
+
+    }
+
+
+    function resetQuiz() {
+
+      renderQuiz();
+
+
+      result.classList.remove(
+        "show"
+      );
+
+
+      warning.classList.remove(
+        "show"
+      );
+
+
+      submitButton.disabled =
+        false;
+
+
+      submitButton.style.opacity =
+        "1";
+
+
+      submitButton.style.cursor =
+        "pointer";
+
+
+      submitButton.textContent =
+        "Проверить ответы";
+
+
+      progressBar.style.width =
+        "0%";
+
+
+      progressText.textContent =
+        `0 / ${questions.length}`;
+
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    }
+
+
+    submitButton.addEventListener(
+      "click",
+      checkQuiz
+    );
+
+
+    renderQuiz();
+
+  </script>
+
+</body>
+</html>
